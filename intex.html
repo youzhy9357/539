@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>精彩539隨機號碼產生器</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f0f2f5;
+        margin: 0;
+        color: #333;
+    }
+    .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+    }
+    h1 {
+        color: #0056b3;
+        margin-bottom: 20px;
+    }
+    .instructions {
+        margin-bottom: 20px;
+        color: #555;
+        line-height: 1.6;
+    }
+    .number-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    .number-button {
+        width: 45px;
+        height: 45px;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        background-color: #fff;
+        font-size: 1rem;
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        user-select: none;
+    }
+    .number-button.excluded {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+    .controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .controls label {
+        font-size: 1rem;
+    }
+    .controls input[type="number"] {
+        width: 70px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        text-align: center;
+    }
+    #generate-btn {
+        background-color: #28a745;
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s;
+    }
+    #generate-btn:hover {
+        background-color: #218838;
+    }
+    #results {
+        margin-top: 25px;
+    }
+    .result-title {
+        font-size: 1.5rem;
+        color: #0056b3;
+        margin-bottom: 15px;
+    }
+    .result-numbers {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+    .result-number {
+        width: 50px;
+        height: 50px;
+        background-color: #ffc107;
+        color: #333;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.4rem;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #combination-results {
+        margin-top: 25px;
+        padding: 15px;
+        background-color: #e9ecef;
+        border-radius: 8px;
+        text-align: left;
+        line-height: 1.7;
+    }
+    #combination-results h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #343a40;
+        text-align: center;
+    }
+    .error {
+        color: #dc3545;
+        margin-top: 15px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>精彩539隨機號碼產生器</h1>
+    <p class="instructions">
+        第一步：點擊下方 1 到 39 的號碼來選擇要排除的數字。<br>
+        第二步：在下方輸入框中指定您想要隨機選取幾個號碼。<br>
+        第三步：點擊「產生號碼」按鈕，將同時顯示號碼與組合金額。
+    </p>
+
+    <div class="number-grid" id="number-grid"></div>
+
+    <div class="controls">
+        <label for="quantity">選取數量：</label>
+        <input type="number" id="quantity" value="5" min="1" max="39">
+        <button id="generate-btn">產生號碼</button>
+    </div>
+
+    <div id="results"></div>
+    <div id="error-message" class="error"></div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const numberGrid = document.getElementById('number-grid');
+        const quantityInput = document.getElementById('quantity');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultsDiv = document.getElementById('results');
+        const errorMessageDiv = document.getElementById('error-message');
+
+        const totalNumbers = 39;
+        let excludedNumbers = new Set();
+
+        // 建立號碼按鈕
+        for (let i = 1; i <= totalNumbers; i++) {
+            const numberButton = document.createElement('div');
+            numberButton.classList.add('number-button');
+            numberButton.textContent = i;
+            numberButton.dataset.number = i;
+            numberButton.addEventListener('click', () => toggleExclude(i, numberButton));
+            numberGrid.appendChild(numberButton);
+        }
+
+        function toggleExclude(number, element) {
+            if (excludedNumbers.has(number)) {
+                excludedNumbers.delete(number);
+                element.classList.remove('excluded');
+            } else {
+                excludedNumbers.add(number);
+                element.classList.add('excluded');
+            }
+        }
+
+        // --- Helper functions for calculation ---
+        function factorial(num) {
+            if (num < 0) return 0;
+            if (num === 0) return 1;
+            let result = 1;
+            for (let i = 2; i <= num; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        function calculateCombinations(n, k) {
+            if (k < 0 || k > n) {
+                return 0;
+            }
+            return factorial(n) / (factorial(k) * factorial(n - k));
+        }
+
+        generateBtn.addEventListener('click', () => {
+            resultsDiv.innerHTML = '';
+            errorMessageDiv.textContent = '';
+
+            const quantity = parseInt(quantityInput.value, 10);
+            
+            let availableNumbers = [];
+            for (let i = 1; i <= totalNumbers; i++) {
+                if (!excludedNumbers.has(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            if (isNaN(quantity) || quantity <= 0) {
+                errorMessageDiv.textContent = '請輸入一個有效的選取數量。';
+                return;
+            }
+            
+            if (quantity > availableNumbers.length) {
+                errorMessageDiv.textContent = `可選的號碼數量不足 (剩餘 ${availableNumbers.length} 個)，無法選取 ${quantity} 個號碼。`;
+                return;
+            }
+
+            let selectedNumbers = [];
+            for (let i = 0; i < quantity; i++) {
+                const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+                const selectedNumber = availableNumbers.splice(randomIndex, 1)[0];
+                selectedNumbers.push(selectedNumber);
+            }
+            
+            selectedNumbers.sort((a, b) => a - b);
+
+            displayResults(selectedNumbers, quantity);
+        });
+
+        function displayResults(numbers, quantity) {
+            const resultTitle = document.createElement('h2');
+            resultTitle.classList.add('result-title');
+            resultTitle.textContent = '隨機選取的號碼';
+            resultsDiv.appendChild(resultTitle);
+            
+            const resultNumbersContainer = document.createElement('div');
+            resultNumbersContainer.classList.add('result-numbers');
+            
+            numbers.forEach(number => {
+                const numberDiv = document.createElement('div');
+                numberDiv.classList.add('result-number');
+                numberDiv.textContent = number;
+                resultNumbersContainer.appendChild(numberDiv);
+            });
+            
+            resultsDiv.appendChild(resultNumbersContainer);
+
+            // --- 新增的計算與顯示邏輯 ---
+            if (quantity >= 5) {
+                const combinations = calculateCombinations(quantity, 5);
+                const totalCost = combinations * 50;
+
+                const comboDiv = document.createElement('div');
+                comboDiv.id = 'combination-results';
+                
+                comboDiv.innerHTML = `
+                    <h3>組合與金額計算</h3>
+                    <p>從您選出的 <strong>${quantity}</strong> 個號碼中，每 5 個號碼為一組：</p>
+                    <p>◉ 共可產生 <strong>${combinations.toLocaleString()}</strong> 組。</p>
+                    <p>◉ 總計金額為 <strong>${totalCost.toLocaleString()}</strong> 元 (以每組50元計算)。</p>
+                `;
+                resultsDiv.appendChild(comboDiv);
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
